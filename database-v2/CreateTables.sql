@@ -1,5 +1,9 @@
 CREATE DATABASE HealthAndFitness;
 
+CREATE TYPE week_day AS enum (
+  "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"
+)
+
 CREATE TABLE Profile (
   profile_id SERIAL PRIMARY KEY,
   first_name varchar(255),
@@ -11,8 +15,9 @@ CREATE TABLE Trainers (
   trainer_id SERIAL PRIMARY KEY,
   first_name varchar(255),
   last_name varchar(255),
-  schedule date ARRAY,
-  view_member_profile int ARRAY
+  day_schedule week_day ARRAY[7],
+  start_time time ARRAY[7],
+  end_time time ARRAY[7],
 );
 
 CREATE TABLE AdminStaff (
@@ -33,7 +38,9 @@ CREATE TABLE Members (
   member_id SERIAL PRIMARY KEY,
   profile_id int REFERENCES Profile(profile_id),
   health_id int REFERENCES HealthStatistics(health_id),
-  schedule date ARRAY
+  day_schedule date ARRAY[7],
+  start_time time[7],
+  end_time time[7]
 );
 
 CREATE TABLE Billings (
@@ -76,8 +83,9 @@ CREATE TABLE "Class" (
   is_group boolean,
   member_ids int ARRAY REFERENCES Members(member_id),
   exercise_ids int ARRAY REFERENCES Exercises(exercise_id),
-  start_time date,
-  end_time date,
+  day_schedule week_day ARRAY[7],
+  start_time time ARRAY[7],
+  end_time time ARRAY[7],
   creation_time timestamp,
   price double
 );
