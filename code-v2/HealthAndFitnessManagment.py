@@ -8,6 +8,83 @@ import psycopg2
 
 #Credit to (https://psycopg.org/) for postgres connection service
 
+# Member Functions:
+#     1. User Registration
+#     2. Profile Management (Updating personal information, fitness goals, health metrics)
+#     3. Dashboard Display (Displaying exercise routines, fitness achievements, health statistics)
+#     4. Schedule Management (Scheduling personal training sessions or group fitness classes. The system
+
+
+# Trainer Functions:
+#     1. Schedule Management (Trainer can set the time for which they are available.)
+def setSchedule(tid, week_day, start_time, end_time):
+    """
+    Updates the desired Trainer based off id and prints out a confirmation message
+        Parameters:
+            tid (int): The Trainers id in which to update
+            week_day (str): The day of week for the schedule update
+            start_time (str): The start time of avalibility (XX:XX:XX)
+            end_time (str): The end time of avalibility (XX:XX:XX)
+        Return:
+            True if the update is a success, False otherwise
+    """
+    #Parse input to determine validity
+    day_list = ["Sunday", "Monday", "Tuesday", "Wednesday",
+                "Thursday", "Friday", "Saturday"]
+    start_split = start_time.split(":")
+    end_split = end_time.split(":")
+    if week_day not in day_list:
+        print('Invalid week day: "{}" not a valid entry'.format(week_day))
+        return False
+    elif (len(start_split) != 2 and len(start_split) != 3) or (len(end_split) != 2 and len(end_split) != 3):
+        print('Invalid time format: must be "hh:mm:ss" or "hh:mm"')
+        return False
+    elif int(start_split[0]) < 0 or int(start_split[0] > 24) or int(end_split[0]) < 0 or int(end_split[0] > 24):
+        print('Invalid hour: hours must be between 0-24 (inclusive)')
+        return False
+    elif int(start_split[1]) < 0 or int(start_split[1] > 60) or int(end_split[1]) < 0 or int(end_split[1] > 60):
+        print('Invalid minutes: minutes must be between 0-60 (inclusive)')
+        return False
+    
+    if len(start_split) == 3 and (int(start_split[2]) < 0 or int(start_split[2] > 60)):
+        print('Invalid seconds: hours must be between 0-60 (inclusive)')
+        return False   
+    if len(end_split) == 3 and (int(end_split[2]) < 0 or int(end_split[2]) > 60):
+        print('Invalid seconds: hours must be between 0-60 (inclusive)')
+        return False    
+    
+    for i in range(7):
+        if day_list[i] == week_day:
+            break
+        
+    cursor.execute("UPDATE Trainers\nSET day_schedule[{}] = '{}', start_time[{}] = '{}', end_time[{}] = '{}' \nWHERE trainer_id = {};".format(i,week_day,i,start_time,i,end_time,tid))
+    print("UPDATE SUCCESS! Trainer schedule has been updated.")
+    
+    return True
+
+#     2. Member Profile Viewing (Search by Member’s name)
+def viewProfile(first_name):
+    """
+    Retreives the profile informatition and prints it before returning it
+        Parameters:
+            first_name (str): The member's first name
+        Return:
+            A list containing the The profile information tuples
+    """
+    cursor.execute("SELECT * \nFROM Profile \nWHERE first_name = '{}'".format(first_name))
+    new_table = cursor.fetchall()
+    for row in new_table:
+        print(row)
+    return new_table    
+
+
+# Administrative Staff Functions:
+#     1. Room Booking Management
+#     2. Equipment Maintenance Monitoring
+#     3. Class Schedule Updating
+#     4. Billing and Payment Processing (Your system should assume integration with a payment service
+#          [Note: Do not actually integrate with a payment service])
+
 def setup(db_user: str, db_pass:str):
     """
     Initializes the connection to the database.
@@ -27,8 +104,6 @@ def setup(db_user: str, db_pass:str):
                            port = db_port)
     #Return the item to control database actions
     return conn.cursor()
-
-
 
 #print program info and commands
 print("#########################################################################")
