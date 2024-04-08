@@ -44,7 +44,7 @@ CREATE TABLE Members (
   member_id SERIAL PRIMARY KEY,
   profile_id int REFERENCES Profile(profile_id),
   health_id int REFERENCES HealthStatistics(health_id),
-  day_schedule date ARRAY[7],
+  day_schedule week_day ARRAY[7],
   start_time time[7],
   end_time time[7]
 );
