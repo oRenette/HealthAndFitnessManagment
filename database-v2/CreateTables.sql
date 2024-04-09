@@ -5,21 +5,21 @@ CREATE TYPE Booking_Status AS ENUM ('Booked', 'Cancelled', 'Modified');
 
 CREATE TABLE Exercises (
   exercise_id SERIAL PRIMARY KEY,
-  exercise_name varchar(255)
+  exercise_name varchar(255) UNIQUE NOT NULL
 );
 
 CREATE TABLE Profile (
   profile_id SERIAL PRIMARY KEY,
-  first_name varchar(255),
-  last_name varchar(255),
-  email varchar(255)
+  first_name varchar(255) NOT NULL,
+  last_name varchar(255) NOT NULL,
+  email varchar(255) UNIQUE NOT NULL
 );
 
 CREATE TABLE Trainers (
   trainer_id SERIAL PRIMARY KEY,
-  first_name varchar(255),
-  last_name varchar(255),
-  email varchar(255),
+  first_name varchar(255) NOT NULL,
+  last_name varchar(255) NOT NULL,
+  email varchar(255) UNIQUE NOT NULL,
   day_schedule week_day ARRAY[7],
   start_time time ARRAY[7],
   end_time time ARRAY[7]
@@ -27,17 +27,17 @@ CREATE TABLE Trainers (
 
 CREATE TABLE AdminStaff (
   admin_id SERIAL PRIMARY KEY,
-  first_name varchar(255),
-  last_name varchar(255),
-  email varchar(255)
+  first_name varchar(255) NOT NULL,
+  last_name varchar(255) NOT NULL,
+  email varchar(255) UNIQUE NOT NULL
 );
 
 CREATE TABLE HealthStatistics (
   health_id SERIAL PRIMARY KEY,
-  weight int,
-  age int,
-  male boolean,
-  height float
+  weight int NOT NULL,
+  age int NOT NULL,
+  male boolean NOT NULL,
+  height float NOT NULL
 );
 
 CREATE TABLE Members (
@@ -64,14 +64,15 @@ CREATE TABLE Rooms (
 
 CREATE TABLE Classes (
   class_id SERIAL PRIMARY KEY,
+  class_name varchar(255) NOT NULL,
   trainer_id int REFERENCES Trainers(trainer_id),
   room_id int REFERENCES Rooms(room_id),
-  is_group boolean,
-  day_schedule week_day,
-  start_time time,
-  end_time time,
-  creation_time timestamp,
-  price double precision
+  is_group boolean NOT NULL,
+  day_schedule week_day NOT NULL,
+  start_time time NOT NULL,
+  end_time time NOT NULL,
+  creation_time timestamp DEFAULT CURRENT_TIMESTAMP,
+  price double precision NOT NULL
 );
 
 CREATE TABLE Class_Members (
@@ -105,6 +106,6 @@ CREATE TABLE Admin_Class_Bookings (
 CREATE TABLE FitnessGoals (
   goal_id SERIAL PRIMARY KEY,
   member_id int REFERENCES Members(member_id),
-  weight int,
-  time_deadline date
+  weight int NOT NULL,
+  time_deadline date NOT NULL
 );
