@@ -1,10 +1,13 @@
-//Used with dbdiagram.io to form the diagrams
-//Attributes of PRIMARY_KEY used to signal pairing of PKs
+//Attributes of PRIMARY_KEY used to signal
+//pairing of PK's
 
 Table Trainers {
   trainer_id int [primary key]
   first_name varchar
   last_name varchar
+  day_schedule week_day
+  start_time time
+  end_time time
 }
 
 Table Billings {
