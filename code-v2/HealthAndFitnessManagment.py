@@ -17,10 +17,10 @@ import psycopg2
 
 # Trainer Functions:
 #     1. Schedule Management (Trainer can set the time for which they are available.)
-def setSchedule(tid, week_day, start_time, end_time):
+def setSchedule():
     """
     Updates the desired Trainer based off id and prints out a confirmation message
-        Parameters:
+        Inputs (Not parameters):
             tid (int): The Trainers id in which to update
             week_day (str): The day of week for the schedule update
             start_time (str): The start time of avalibility (XX:XX:XX)
@@ -28,6 +28,14 @@ def setSchedule(tid, week_day, start_time, end_time):
         Return:
             True if the update is a success, False otherwise
     """
+    try: 
+        tid = int(input("Enter your trainer id: "))
+    except ValueError:
+        print('Invalid trainer id: Not an integer')
+        return False    
+    week_day = input("Enter the weekday of avalibility: ")
+    start_time = input("Enter the start time (hh:mm): ")
+    end_time = input("Enter the end time (hh:mm): ")
     #Parse input to determine validity
     day_list = ["Sunday", "Monday", "Tuesday", "Wednesday",
                 "Thursday", "Friday", "Saturday"]
@@ -36,23 +44,37 @@ def setSchedule(tid, week_day, start_time, end_time):
     if week_day not in day_list:
         print('Invalid week day: "{}" not a valid entry'.format(week_day))
         return False
-    elif (len(start_split) != 2 and len(start_split) != 3) or (len(end_split) != 2 and len(end_split) != 3):
-        print('Invalid time format: must be "hh:mm:ss" or "hh:mm"')
-        return False
-    elif int(start_split[0]) < 0 or int(start_split[0] > 24) or int(end_split[0]) < 0 or int(end_split[0] > 24):
-        print('Invalid hour: hours must be between 0-24 (inclusive)')
-        return False
-    elif int(start_split[1]) < 0 or int(start_split[1] > 60) or int(end_split[1]) < 0 or int(end_split[1] > 60):
-        print('Invalid minutes: minutes must be between 0-60 (inclusive)')
+    
+    try:
+        if (len(start_split) != 2 and len(start_split) != 3) or (len(end_split) != 2 and len(end_split) != 3):
+            print('Invalid time format: must be "hh:mm:ss" or "hh:mm"')
+            return False
+        elif int(start_split[0]) < 0 or int(start_split[0] > 24) or int(end_split[0]) < 0 or int(end_split[0] > 24):
+            print('Invalid hour: hours must be between 0-24 (inclusive)')
+            return False
+        elif int(start_split[1]) < 0 or int(start_split[1] > 60) or int(end_split[1]) < 0 or int(end_split[1] > 60):
+            print('Invalid minutes: minutes must be between 0-60 (inclusive)')
+            return False
+    
+        if len(start_split) == 3 and (int(start_split[2]) < 0 or int(start_split[2] > 60)):
+            print('Invalid seconds: hours must be between 0-60 (inclusive)')
+            return False   
+        if len(end_split) == 3 and (int(end_split[2]) < 0 or int(end_split[2]) > 60):
+            print('Invalid seconds: hours must be between 0-60 (inclusive)')
+            return False    
+    
+        if (int(start_split[0]) == 24 and (int(start_split[1] > 0) or int(start_split[2] > 0))) or (int(end_split[0]) == 24 and (int(end_split[1] > 0) or int(end_split[2] > 0))):
+            print('Invalid time: Time cannot be past 24 hours')
+            return False    
+    except ValueError:
+        print('Invalid time input: Not an integer in (hh:mm)')
+        return False      
+    
+    if start_time > end_time:
+        print('Invalid inputs: start time must be before end time')
         return False
     
-    if len(start_split) == 3 and (int(start_split[2]) < 0 or int(start_split[2] > 60)):
-        print('Invalid seconds: hours must be between 0-60 (inclusive)')
-        return False   
-    if len(end_split) == 3 and (int(end_split[2]) < 0 or int(end_split[2]) > 60):
-        print('Invalid seconds: hours must be between 0-60 (inclusive)')
-        return False    
-    
+    #Find the index to insert the date at
     for i in range(7):
         if day_list[i] == week_day:
             break
@@ -63,20 +85,21 @@ def setSchedule(tid, week_day, start_time, end_time):
     return True
 
 #     2. Member Profile Viewing (Search by Member’s name)
-def viewProfile(first_name):
+def viewProfile():
     """
     Retreives the profile informatition and prints it before returning it
-        Parameters:
+        Inputs (Not parameters):
             first_name (str): The member's first name
         Return:
             A list containing the The profile information tuples
     """
-    cursor.execute("SELECT * \nFROM Profile \nWHERE first_name = '{}'".format(first_name))
+    first_name = input("Search member profile by first name: ")
+    cursor.execute("SELECT * \nFROM Profile \nWHERE first_name = '{}';".format(first_name))
     new_table = cursor.fetchall()
     for row in new_table:
         print(row)
     return new_table    
-
+    
 
 # Administrative Staff Functions:
 #     1. Room Booking Management
