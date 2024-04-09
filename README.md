@@ -1,4 +1,4 @@
-# SoccerEventsProject
+# HealthAndFitnessManagment
 Provides functions to manage a Health and Fitness Managment Database.
 ## Setup
 * Launch pgadmin4
