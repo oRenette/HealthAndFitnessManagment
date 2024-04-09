@@ -20,9 +20,6 @@ CREATE TABLE Trainers (
   first_name varchar(255) NOT NULL,
   last_name varchar(255) NOT NULL,
   email varchar(255) UNIQUE NOT NULL,
-  day_schedule week_day ARRAY[7],
-  start_time time ARRAY[7],
-  end_time time ARRAY[7]
 );
 
 CREATE TABLE AdminStaff (
@@ -44,9 +41,6 @@ CREATE TABLE Members (
   member_id SERIAL PRIMARY KEY,
   profile_id int REFERENCES Profile(profile_id),
   health_id int REFERENCES HealthStatistics(health_id),
-  day_schedule week_day ARRAY[7],
-  start_time time[7],
-  end_time time[7]
 );
 
 CREATE TABLE Billings (
