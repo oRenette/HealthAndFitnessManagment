@@ -75,19 +75,19 @@ CREATE TABLE Classes (
   price double precision NOT NULL
 );
 
-CREATE TABLE Class_Members (
+CREATE TABLE ClassMembers (
   class_id int REFERENCES Classes(class_id),
   member_id int REFERENCES Members(member_id),
   PRIMARY KEY (class_id, member_id)
 );
 
-CREATE TABLE Class_Exercises (
+CREATE TABLE ClassExercises (
   class_id int REFERENCES Classes(class_id),
   exercise_id int REFERENCES Exercises(exercise_id),
   PRIMARY KEY (class_id, exercise_id)
 );
 
-CREATE TABLE Member_Class_Bookings (
+CREATE TABLE MemberClassBookings (
   booking_id SERIAL PRIMARY KEY,
   member_id INT REFERENCES Members(member_id),
   class_id INT REFERENCES Classes(class_id),
@@ -95,7 +95,7 @@ CREATE TABLE Member_Class_Bookings (
   status Booking_Status DEFAULT 'Booked'
 );
 
-CREATE TABLE Admin_Class_Bookings (
+CREATE TABLE AdminClassBookings (
   booking_id INT REFERENCES Member_Class_Bookings(booking_id) ON DELETE CASCADE,
   admin_id INT REFERENCES AdminStaff(admin_id),
   modified_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
