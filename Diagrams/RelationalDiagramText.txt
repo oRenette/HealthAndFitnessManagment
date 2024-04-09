@@ -1,0 +1,128 @@
+//Used with dbdiagram.io to form the diagrams
+//Attributes of PRIMARY_KEY used to signal pairing of PKs
+
+Table Trainers {
+  trainer_id int [primary key]
+  first_name varchar
+  last_name varchar
+}
+
+Table Billings {
+  bill_id int [primary key]
+  member_id int
+  admin_id int
+  amount double
+}
+
+Table AdminStaff {
+  admin_id int [primary key]
+  first_name varchar
+  last_name varchar
+}
+
+Table Profile {
+  profile_id int [primary key]
+  first_name varchar
+  last_name varchar
+  email varchar
+}
+
+Table FitnessGoals {
+  goal_id int [primary key]
+  member_id int
+  weight int
+  date_deadline date
+}
+
+Table HeathStatistics {
+  health_id int [primary key]
+  weight int
+  age int
+  male boolean 
+  height float
+}
+
+Table Members {
+  member_id int [primary key]
+  profile_id int
+  health_id int
+}
+
+Table Rooms {
+  room_id int [primary key]
+  capacity int
+}
+
+Table Classes {
+  class_id int [primary key]
+  class_name varchar
+  trainer_id int
+  room_id int
+  is_group boolean
+  day_schedule week_day[7]
+  start_time time[7]
+  end_time time[7]
+  creation_time timestamp
+  price double
+}
+
+Table Exercises {
+  exercise_id int [primary key]
+  exercise_name varchar
+}
+
+Table ClassMembers {
+  class_id int
+  member_id int
+  PRIMARY_KEY KEY (class_id, member_id)
+}
+
+Table ClassExercises {
+  class_id int
+  exercise_id int
+  PRIMARY_KEY KEY (class_id, exercise_id)
+}
+
+Table MemberClassBookings {
+  booking_id SERIAL [primary key]
+  member_id int
+  class_id int
+  booking_time timestamp
+  status Booking_Status
+}
+
+Table AdminClassBookings {
+  booking_id int
+  admin_id int
+  modified_time timestamp
+  PRIMARY_KEY KEY (booking_id, admin_id)
+}
+
+//New Tables that support multiple values for tables
+//ClassMembers
+Ref: ClassMembers.class_id > Classes.class_id
+Ref: ClassMembers.member_id > Members.member_id
+//Class Exercises
+Ref: ClassExercises.class_id > Classes.class_id
+Ref: ClassExercises.exercise_id > Exercises.exercise_id
+//MemberClassBookings
+Ref: MemberClassBookings.member_id > Members.member_id
+Ref: MemberClassBookings.class_id > Classes.class_id
+//AdminClassBookings
+Ref: AdminClassBookings.booking_id > MemberClassBookings.booking_id
+Ref: AdminClassBookings.admin_id > AdminStaff.admin_id
+
+//Connects to members
+Ref: Members.profile_id - Profile.profile_id
+Ref: Members.health_id - HeathStatistics.health_id
+Ref: Members.health_id < FitnessGoals.member_id
+
+//Connects to rooms
+Ref: Classes.room_id - Rooms.room_id
+
+//Connects to Trainers
+Ref: Trainers.trainer_id < Classes.trainer_id
+
+//Connects to admin
+Ref: Billings.member_id > Members.member_id
+Ref: AdminStaff.admin_id < Billings.admin_id
