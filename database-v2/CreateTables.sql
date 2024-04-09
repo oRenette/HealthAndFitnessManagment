@@ -43,7 +43,7 @@ CREATE TABLE HealthStatistics (
 CREATE TABLE Members (
   member_id SERIAL PRIMARY KEY,
   profile_id int REFERENCES Profile(profile_id),
-  health_id int REFERENCES HealthStatistics(health_id),
+  health_id int REFERENCES HealthStatistics(health_id)
 );
 
 CREATE TABLE Billings (
@@ -93,7 +93,7 @@ CREATE TABLE MemberClassBookings (
 );
 
 CREATE TABLE AdminClassBookings (
-  booking_id INT REFERENCES Member_Class_Bookings(booking_id) ON DELETE CASCADE,
+  booking_id INT REFERENCES MemberClassBookings(booking_id) ON DELETE CASCADE,
   admin_id INT REFERENCES AdminStaff(admin_id),
   modified_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (booking_id, admin_id)
