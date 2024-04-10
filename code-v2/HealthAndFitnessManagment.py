@@ -13,7 +13,157 @@ import psycopg2
 #     2. Profile Management (Updating personal information, fitness goals, health metrics)
 #     3. Dashboard Display (Displaying exercise routines, fitness achievements, health statistics)
 #     4. Schedule Management (Scheduling personal training sessions or group fitness classes. The system
+def member_registration():
+    """
+    The registration for the user
+    
+    Requests the first and last name aswell as the email
+    Requests their health stats
+    
+    Creates new tuples for the Profile and Health tables and adds the new tuple ID's to the member's profile. 
+    """
+    
+    print("\nPlease input the following data for registration:\n")
+    first_name = input("\tFirst Name:")
+    last_name = input("\tLast Name:")
+    email = input("\tEmail:")
+    
+    weight = input("\tWeight:")
+    age = input("\tAge:")
+    gender = input("\tGender (Male/Female/Other):")
+    height = input("\tHeight:")
+    
+    if gender.lower() == "male":
+        gender = true
+    else:
+        gender = false
+    
+    cursor.execute("insert into Profile (first_name, last_name, email) values (%s, %s, %s)", (first_name, last_name, email))
+    cursor.execute("select profile_id from Profile where email = %s", (email))
+    prof_id = cursor.fetchall()
+    
+    cursor.execute("insert into HealthStatistics (weight, age, male, height) values (%s,%s,%s,%s)", (weight, age, gender, height))
+    cursor.execute("select health_id from HealthStatistics where weight = %s, age = %s, male = %s, height = %s", (weight, age, gender, height))
+    health_id = cursor.fetchall()    
+    
+    cursor.execute("insert into Members (profile_id, health_id) values (%s, %s)", (prof_id, health_id))
+        
+def profile_management():
+    """
+    Updates the profile of the member with the new stats they give
+    
+    Input (No Parameter):
+        profile (int): choice between updating profile or health stats
+    Return:
+        True if the update is successful, False otherwise
+    
+    """
+    print("\nWhat would you like to edit? (Please input the number)")
+    try:
+        profile = int(input("1.Fitness Goals\n2.HealthStatistics"))
+    except ValueError:
+        print("Not a valid option. Must be a number value")
+        return False
+    
+    if profile == 1:
+        print("Please enter your new fitness goals.")
+        weight = input("Target weight:")
+        target = input("Target Deadline in form Month/Day/Year:")
+        cursor.execute("update FitnessGoals set weight = %s, schedule = %s where (member_id = %s)", (weight, target, mid))
+    else:
+        print("\nInput new health statistics.")
+        weight = input("\tWeight:")
+        age = input("\tAge:")
+        gender = input("\tGender (Male/Female/Other):")
+        height = input("\tHeight:")
+        cursor.execute("update HealthStatistics set (weight = %s, age = %s, male = %s, height = %s) where (member_id = %s)", (weight, age, gender, height, mid))
+    return True
+            
+def dahsboard():
+    """
+    Displays the profile, health and classes of the member that logged in
+    """
+    cursor.execute("select profile_id, health_id from Members where member_id = %s", (mid))
+    rows = cursor.fetchall()
+    for row in rows:
+        cursor.execute("select weight, time_deadline from Profile where profile_id = %s", (row[0]))
+        prof = cursor.fetchall()
+        for p in prof:
+            print(f"Weight: {p[0]}/tDeadline: {p[1]}\n")
+        cursor.execute("select (weight, age, male, height) from HealthStatistics where health_id = %s", (row[1]))
+        health = cursor.fetchall()
+        for h in health:
+            print(f"Weight: {h[0]}/tAge: {h[1]}/tMale?: {h[2]}/tHeight: {h[3]}/n")
+            
+    cursor.execute("select class_id from MemberClassBookings where member_id = %s", (mid))
+    classes = cursor.fetchall()
+    
+    print("Class Schedule")
+    for c in classes:
+        clas = cursor.execute("select class_id, class_name, day_schedule, start_time, end_time from Classes where class_id = %s", c)
+        print(f"{clas[0]}. {clas[1]} -- Day: {clas[2]} Time: {clas[3]} -> {clas[4]}")
 
+def schedule_management():
+    """
+    Updates the class schedule of the member based of off their ID
+    Inputs (No Parameters):
+        choice (int): The choice of adding a class or cancelling a class
+    Return:
+        True if the update is successful, False otherwise
+    """
+    try:
+        choice = int(input("1.Add Classes to schedule\n2.Remove Classes from schedule"))
+    except ValueError:
+        print("Not a valid option. Must type value associated with option.")
+        return False
+        
+    if choice == 1:
+        cursor.execute("select class_id, class_name, day_schedule, start_time, end_time from Classes")
+        classes = cursor.fetchall()
+        print("Choose a booking to ADD from the following classes: ")
+        for c in classes:
+            print(f"\n{c[0]}. {c[1]}")
+        clas = input("Please select the class number.")
+        
+        cursor.exectue("insert into MemberClassBookings values (%s, %s)", (mid, clas))
+        print("Class has been added!")
+        return true
+    elif choice == 2:
+        cursor.execute("select class_id, class_name, day_schedule, start_time, end_time from Classes where member_id = %s", (mid)) 
+        classes = cursor.fetchall()
+        print("Choose a booking to REMOVE from the following classes: ")
+        for c in classes:
+            print(f"\n{c[0]}. {c[1]}")
+        clas = input("Please select the class number.") 
+        
+        cursor.execute("update MemberClassBookings set status = 'cancelled' where (member_id = %s and class_id = %s)", (mid, clas))
+        print("Class has been cancelled!")
+        return true
+    else:
+        print("Not an option")
+        return False
+        
+
+def member_login():
+    """
+    member login based off of their email
+    Assumption: User is registered
+    
+    Returns True if login successful and False otherwise
+    """
+    
+    email = input("Please enter your email to login.")
+    
+    cursor.execute("select profile_id from Profile where email = %s", (email))
+    prof_id = cursor.fetchall()
+    if prof_id is empty:
+        print("Email doesn't exist")
+        return False
+    
+    cursor.execute("select from Members where profile_id = %s", (prof_id[0]))
+    login_id = cursor.fetchall()
+    mid = login_id[0]
+    return True
 
 # Trainer Functions:
 #     1. Schedule Management (Trainer can set the time for which they are available.)
