@@ -258,7 +258,70 @@ def viewProfile():
 #     4. Billing and Payment Processing (Your system should assume integration with a payment service
 #          [Note: Do not actually integrate with a payment service])
 
+def bookingManagement():
+    """
+        Allows admin users delete or add bookings
+            Inputs:
+            admin_id of the admin logged in
+            booking_id of the booking being deleted\added
+        """
+    admin_id = input("Please enter your admin id:")
+    try:
+        choice = input("1: cancel a booking\n2: add a booking")
+    except ValueError:
+        print("Not a valid option. Must type value associated with option.")
+        return False
 
+    if choice == 1:
+        booking_id = input("What is the booking_id you want to delete?")
+
+        # Check if admin is authorized to delete the booking
+        cursor.execute("SELECT admin_id FROM AdminClassBookings WHERE booking_id = %s", (booking_id,))
+        result = cursor.fetchone()
+        if result and result[0] == admin_id:
+            # Delete the booking
+            cursor.execute("DELETE FROM MemberClassBookings WHERE booking_id = %s", (booking_id,))
+            print("Booking deleted successfully.")
+        else:
+            print("Admin is not authorized to delete this booking.")
+        return True
+    elif choice == 2:
+        cursor.execute("SELECT * FROM AdminStaff WHERE admin_id = %s", (admin_id,))
+        admin_exists = cursor.fetchone()
+        if admin_exists:
+            print("To add a room booking please provide the following information:")
+            member_id = input("The id of member booking the class:")
+            class_id = input("Enter the class id of the class being booked in the room:")
+            status = 'Booked'
+            # Add the room booking
+            cursor.execute(
+                "INSERT INTO MemberClassBookings (member_id, class_id, status) VALUES (%s, %s, %s)",
+                (member_id, class_id, status))
+            print("Room booking added successfully!")
+        else:
+            print("Admin does not exist.")
+        return True
+    else:
+        print("Not an option")
+        return False
+
+
+
+def equipmentMaintenance():
+    """
+    Allows admin users to review the status of equipment
+    """
+
+
+def ClassScheduleUpdating():
+    """
+    Allows admin users to update the scheduling of classes
+    """
+
+def billingAndPayment():
+    """
+    Allows admin users to view the billing and payments of members
+    """
 
 #Non User-Functionality Methods
 def UI():
