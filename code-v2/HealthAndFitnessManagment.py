@@ -258,6 +258,111 @@ def viewProfile():
 #     4. Billing and Payment Processing (Your system should assume integration with a payment service
 #          [Note: Do not actually integrate with a payment service])
 
+
+
+#Non User-Functionality Methods
+def UI():
+    """
+    Provides a Command Line Based UI for the user to interact with the DB
+    """
+    
+    func = -1
+    member_logged_in = False
+    
+    while func != 0:
+        if func not in [1,2,3]:
+            print("\n\nPlease select a user functionality category. Type 0 to quit.")
+        
+            try:
+                func = int(input(" 1. Member\n 2. Trainer\n 3. Admin\n"))
+            except ValueError:
+                print("Invalid input. Try again.")
+        else:
+            match func:
+                case 1:
+                    print("\nMember Fucntions")
+                    print("Please select a functionality.")                    
+                    if member_logged_in == False:
+                        try:
+                            user_func = int(input(" 1. User Registration\n 2. User Login\n 3.Return\n"))
+                        except ValueError:
+                            print("Invalid Input. Try again.")
+                            
+                        match user_func:
+                            case 1:
+                                member_registration()
+                            case 2:
+                                member_login()
+                            case 3:
+                                func = 4
+                            case _:
+                                print("Invalid")
+                    else:
+                        try:
+                            user_func = int(input(" 1. Edit Profile\n 2. Edit Schedule\n 3. View Dashboard\n 4.User Logout\n"))
+                        except ValueError:
+                            print("Invalid Input. Try again.")          
+                        
+                        match user_func:
+                            case 1:
+                                profile_management()
+                            case 2:
+                                schedule_management()
+                            case 3:
+                                dashboard()
+                            case 4:
+                                member_logged_in = False
+                            case _:
+                                print("Invalid")
+                case 2:
+                    print("\nTrainer Functions\n")
+                    print("Please select a functionality")
+                    
+                    try:
+                        user_func = int(input(" 1. Schedule Management\n 2. View Member Profiles\n 3.Return\n"))
+                    except ValueError:
+                        print("Invalid Input. Try again.")       
+                        
+                    match user_func:
+                        case 1:
+                            setSchedule()
+                        case 2:
+                            viewProfile()
+                        case 3:
+                            func = 4
+                        case _:
+                            print("Invalid")
+                case 3:
+                    print("\nAdmin Functions\n")
+                    print("please select a functionality")
+                    
+                    try:
+                        user_func = int(input(" 1. Room Booking Management\n 2. Equipment Monitoring\n 3. Update Class Scheduling\n 4. Billing and Payment\n 5. Return"))
+                    except ValueError:
+                        print("Invalid Input. Try again.")   
+                    
+                    match user_func:
+                        case 1:
+                            #call Room Booking Management
+                            print(user_func)
+                        case 2:
+                            #Call Equipment Monitoring
+                            print(user_func)
+                        case 3:
+                            #Call Update Class
+                            print(user_func)
+                        case 4:
+                            #Call billing
+                            print(user_func)
+                        case 5:
+                            func = 4
+                        case _:
+                            print("Invalid")
+        
+    print("QUITING....")    
+    
+    
+
 def setup(db_user: str, db_pass:str):
     """
     Initializes the connection to the database.
@@ -278,15 +383,20 @@ def setup(db_user: str, db_pass:str):
     #Return the item to control database actions
     return conn.cursor()
 
-#print program info and commands
-print("#########################################################################")
-print("Welcome to the Python database manipulator!")
-print("CREDIT TO ONLINE PACKAGE 'psycopg2' (https://psycopg.org/) WHICH ALLOWS THE DATABASE CONNECTION")
-print("!!!THIS PROGRAM ASSUMES THAT THE PORT, HOSTNAME, AND DATABASE_NAME WERE NOT ALTERED!!!\n\t If they were altered, please adjust the setup() function before use...")
-print("Enter the DB server's name and passowrd to connect:")
+if __name__ == '__main__':
+    #print program info and commands
+    print("#########################################################################")
+    print("Welcome to the Python database manipulator!")
+    print("CREDIT TO ONLINE PACKAGE 'psycopg2' (https://psycopg.org/) WHICH ALLOWS THE DATABASE CONNECTION")
+    print("!!!THIS PROGRAM ASSUMES THAT THE PORT, HOSTNAME, AND DATABASE_NAME WERE NOT ALTERED!!!\n\t If they were altered, please adjust the setup() function before use...")
+    print("Enter the DB server's name and passowrd to connect:")
 
-#Prompt for name and pasword of the postgres server that should be connected
-name = input("\tEnter the DB server username: ")
-password = input("\tEnter the DB server password: ")
-cursor = setup(name, password)
-print("Connection success! Call the functions above to manipulate the database...\n")
+    #Prompt for name and pasword of the postgres server that should be connected
+    '''
+    name = input("\tEnter the DB server username: ")
+    password = input("\tEnter the DB server password: ")
+    cursor = setup(name, password)
+    print("Connection success! Call the functions above to manipulate the database...\n")
+    '''
+
+    UI()
