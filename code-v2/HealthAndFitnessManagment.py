@@ -264,6 +264,8 @@ def bookingManagement():
             Inputs:
             admin_id of the admin logged in
             booking_id of the booking being deleted\added
+            member_id of member booking room
+            class_id of class taking place in booked room
         """
     admin_id = input("Please enter your admin id:")
     try:
@@ -276,17 +278,17 @@ def bookingManagement():
         booking_id = input("What is the booking_id you want to delete?")
 
         # Check if admin is authorized to delete the booking
-        cursor.execute("SELECT admin_id FROM AdminClassBookings WHERE booking_id = %s", (booking_id,))
+        cursor.execute("SELECT admin_id FROM AdminClassBookings WHERE booking_id = %s", (booking_id))
         result = cursor.fetchone()
         if result and result[0] == admin_id:
             # Delete the booking
-            cursor.execute("DELETE FROM MemberClassBookings WHERE booking_id = %s", (booking_id,))
+            cursor.execute("DELETE FROM MemberClassBookings WHERE booking_id = %s", (booking_id))
             print("Booking deleted successfully.")
         else:
             print("Admin is not authorized to delete this booking.")
         return True
     elif choice == 2:
-        cursor.execute("SELECT * FROM AdminStaff WHERE admin_id = %s", (admin_id,))
+        cursor.execute("SELECT * FROM AdminStaff WHERE admin_id = %s", (admin_id))
         admin_exists = cursor.fetchone()
         if admin_exists:
             print("To add a room booking please provide the following information:")
@@ -309,14 +311,46 @@ def bookingManagement():
 
 def equipmentMaintenance():
     """
-    Allows admin users to review the status of equipment
+    Allows admin users to review the status of equipment and repair if necessary
+
     """
+    try:
+        choice = input("1: View all equipment condition\n2: Replaced equipment\n3: Add new equipment\n4: Remove equipment")
+    except ValueError:
+        print("Not a valid option. Must type value associated with option.")
+        return False
+    if choice == 1:
+        # Print out condition of all equipment
+        cursor.execute("SELECT equipment_name, equipment_condition FROM Equipment")
+        result = cursor.fetchall()
+        print(result)
+        return True
+    elif choice == 2:
+        equipment_id = input("Please enter the id of the equipment you have replaced:")
+        cursor.execute("UPDATE Equipment SET equipment_condition = 'Good' WHERE equipment_id = %s", (equipment_id,))
+        print("The selected equipment has been repaired")
+        return True
+    elif choice == 3:
+        equipment_name = input("Please enter the name of the equipment added:")
+        equipment_condition = input("Please enter the condition of the equipment added:")
+        cursor.execute("INSERT INTO Equipment (equipment_name, equipment_condition) VALUES (%s, %s)", (equipment_name, equipment_condition))
+        print("The equipment has been added to the database")
+        return True
+    elif choice == 4:
+        equipment_id = input("Please enter the id of the equipment you want to delete:")
+        cursor.execute("DELETE FROM Equipment WHERE equipment_id = %s", (equipment_id))
+        print("The equipment has been deleted from the database")
+        return True
+    else:
+        print("Not an option")
+        return False
 
 
 def ClassScheduleUpdating():
     """
     Allows admin users to update the scheduling of classes
     """
+
 
 def billingAndPayment():
     """
