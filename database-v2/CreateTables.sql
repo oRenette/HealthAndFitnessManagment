@@ -110,6 +110,6 @@ CREATE TABLE FitnessGoals (
 
 CREATE TABLE Equipment (
   equipment_id INT UNIQUE PRIMARY KEY,
-  equpment_name varchar(255) NOT NULL,
+  equipment_name varchar(255) NOT NULL,
   equipment_condition Equipment_Condition DEFAULT 'Good'
 );
