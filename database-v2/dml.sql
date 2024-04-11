@@ -14,9 +14,9 @@ INSERT INTO Profile (first_name, last_name, email) VALUES
 
 -- Inserting data into Trainers table
 INSERT INTO Trainers (first_name, last_name, email, day_schedule, start_time, end_time) VALUES
-('Mike', 'Anderson', 'mike.anderson@example.com', 'Monday', '08:00:00', '12:00:00'),
-('Sarah', 'Clark', 'sarah.clark@example.com', 'Wednesday', '10:00:00', '14:00:00'),
-('David', 'Wilson', 'david.wilson@example.com', 'Friday', '15:00:00', '19:00:00');
+('Mike', 'Anderson', 'mike.anderson@example.com', ARRAY[cast('Monday' as week_day)], ARRAY[cast('8:00:00' as time)], ARRAY[cast('12:00:00' as time)]),
+('Sarah', 'Clark', 'sarah.clark@example.com', ARRAY[cast('Wednesday' as week_day)], ARRAY[cast('10:00:00' as time)], ARRAY[cast('14:00:00' as time)]),
+('David', 'Wilson', 'david.wilson@example.com', ARRAY[cast('Friday' as week_day)], ARRAY[cast('15:00:00' as time)], ARRAY[cast('19:00:00' as time)]);
 
 -- Inserting data into AdminStaff table
 INSERT INTO AdminStaff (first_name, last_name, email) VALUES
