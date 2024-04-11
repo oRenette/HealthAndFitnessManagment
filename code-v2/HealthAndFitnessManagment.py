@@ -252,12 +252,8 @@ def viewProfile():
     
 
 # Administrative Staff Functions:
-#     1. Room Booking Management
-#     2. Equipment Maintenance Monitoring
-#     3. Class Schedule Updating
-#     4. Billing and Payment Processing (Your system should assume integration with a payment service
-#          [Note: Do not actually integrate with a payment service])
 
+#     1. Room Booking Management
 def bookingManagement():
     """
         Allows admin users delete or add bookings
@@ -269,13 +265,17 @@ def bookingManagement():
         """
     admin_id = input("Please enter your admin id:")
     try:
-        choice = input("1: cancel a booking\n2: add a booking")
+        choice = int(input("1: cancel a booking\n2: add a booking"))
     except ValueError:
         print("Not a valid option. Must type value associated with option.")
         return False
 
     if choice == 1:
-        booking_id = input("What is the booking_id you want to delete?")
+        try:
+            booking_id = int(input("What is the booking_id you want to delete?"))
+        except ValueError:
+            print("Booking id must be an integer value")
+            return False
 
         # Check if admin is authorized to delete the booking
         cursor.execute("SELECT admin_id FROM AdminClassBookings WHERE booking_id = %s", (booking_id))
@@ -308,14 +308,17 @@ def bookingManagement():
         return False
 
 
-
+#     2. Equipment Maintenance Monitoring
 def equipmentMaintenance():
     """
     Allows admin users to review the status of equipment and repair if necessary
-
+        Inputs:
+        equipment_id of equipment added/replaced/removed
+        equipment_name of equipment added
+        eqipment_condition of equipment added
     """
     try:
-        choice = input("1: View all equipment condition\n2: Replaced equipment\n3: Add new equipment\n4: Remove equipment")
+        choice = int(input("1: View all equipment condition\n2: Replaced equipment\n3: Add new equipment\n4: Remove equipment"))
     except ValueError:
         print("Not a valid option. Must type value associated with option.")
         return False
@@ -333,7 +336,8 @@ def equipmentMaintenance():
     elif choice == 3:
         equipment_name = input("Please enter the name of the equipment added:")
         equipment_condition = input("Please enter the condition of the equipment added:")
-        cursor.execute("INSERT INTO Equipment (equipment_name, equipment_condition) VALUES (%s, %s)", (equipment_name, equipment_condition))
+        cursor.execute("INSERT INTO Equipment (equipment_name, equipment_condition) "
+                       "VALUES (%s, %s)", (equipment_name, equipment_condition))
         print("The equipment has been added to the database")
         return True
     elif choice == 4:
@@ -345,17 +349,100 @@ def equipmentMaintenance():
         print("Not an option")
         return False
 
-
-def ClassScheduleUpdating():
+#     3. Class Schedule Updating
+def classScheduleUpdating():
     """
     Allows admin users to update the scheduling of classes
+        Inputs:
+        class_id of class changed
+        week_day of changed class
+        start_time of changed class
+        end_time of changed class
     """
+    try:
+        choice = int(input("1: View all class times\n2: Change a class time"))
+    except ValueError:
+        print("Not a valid option. Must type value associated with option.")
+        return False
 
+    if choice == 1:
+        cursor.execute("SELECT class_id, class_name, day_schedule, start_time, end_time FROM Classes")
+        return True
+    elif choice == 2:
+        class_id = input("Please enter the class id of the class you want to reschedule:")
+        week_day = input("Enter the new weekday of the class: ")
+        start_time = input("Enter the new start time (hh:mm): ")
+        end_time = input("Enter the new end time (hh:mm): ")
+        cursor.execute("UPDATE Classes SET day_schedule = %s, start_time = %s, end_time = %s "
+                       "WHERE class_id = %s", week_day, start_time, end_time, class_id)
+        return True
+    else:
+        print("Not an option")
+        return False
 
+#     4. Billing and Payment Processing
 def billingAndPayment():
     """
-    Allows admin users to view the billing and payments of members
+    Allows admin users to email bills, add bills, and process payments of members
+        Inputs:
+        member_id of member being emailed, billed, or processed
+        admin_id of admin adding bill
+        amount_payed of bill by a member
     """
+    try:
+        choice = int(input("1: Email bills to a member\n2: Add to member's bill\n3: Process members payment"))
+    except ValueError:
+        print("Not a valid option. Must type value associated with option.")
+        return False
+
+    if choice == 1:
+        try:
+            member_id = int(input("Enter the member id:"))
+        except ValueError:
+            print("Member id must be an integer value")
+            return False
+        amount = cursor.execute("SELECT amount FROM billings WHERE member_id = %s", member_id)
+        cursor.execute("SELECT profile.email, billings.amount FROM profile "
+                       "JOIN members ON profile.profile_id = members.profile_id "
+                       "JOIN billings ON members.member_id = billings.member_id "
+                       "WHERE members.member_id = %s", member_id)
+        print("An email has been sent to the member with %s id for an billing amount of $%s", member_id, amount)
+        return True
+    elif choice == 2:
+        try:
+            admin_id = int(input("Enter your admin id:"))
+            member_id = int(input("Enter the id of the member:"))
+        except ValueError:
+            print("Member/Admin id must be an integer value")
+            return False
+        try:
+            user_input = input("Enter the billing amount:")
+            amount = float(user_input)
+        except ValueError:
+            print("Amount must be a double value")
+            return False
+        cursor.execute("INSERT INTO billings (member_id, admin_id, amount) VALUES (%s, %s, %s)", member_id, admin_id, amount)
+        return True
+    elif choice == 3:
+        try:
+            member_id = int(input("Enter the id of the member:"))
+        except ValueError:
+            print("Member id must be an integer value")
+            return False
+        try:
+            user_input = input("Enter the amount payed by member:")
+            amount_payed = float(user_input)
+        except ValueError:
+            print("Amount must be a double value")
+            return False
+
+        prev_amount = cursor.execute("SELECT amount FROM billings WHERE member_id = %s", member_id)
+        amount = prev_amount - amount_payed
+        cursor.execute("UPDATE billings SET amount = %s WHERE member_id = %s", amount, member_id)
+        return True
+    else:
+        print("Not an option")
+        return False
 
 #Non User-Functionality Methods
 def UI():
@@ -440,17 +527,13 @@ def UI():
                     
                     match user_func:
                         case 1:
-                            #call Room Booking Management
-                            print(user_func)
+                            bookingManagement()
                         case 2:
-                            #Call Equipment Monitoring
-                            print(user_func)
+                            equipmentMaintenance()
                         case 3:
-                            #Call Update Class
-                            print(user_func)
+                            classScheduleUpdating()
                         case 4:
-                            #Call billing
-                            print(user_func)
+                            billingAndPayment()
                         case 5:
                             func = 4
                         case _:
