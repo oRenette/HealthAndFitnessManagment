@@ -72,6 +72,7 @@ Table Classes {
 Table Exercises {
   exercise_id int [primary key]
   exercise_name varchar
+  equipment_id int
 }
 
 Table ClassMembers {
@@ -99,6 +100,12 @@ Table AdminClassBookings {
   admin_id int
   modified_time timestamp
   PRIMARY_KEY KEY (booking_id, admin_id)
+}
+
+Table Equipment {
+  equipment_id int
+  equipment_name string
+  equipment_condition condition
 }
 
 //New Tables that support multiple values for tables
@@ -129,3 +136,6 @@ Ref: Trainers.trainer_id < Classes.trainer_id
 //Connects to admin
 Ref: Billings.member_id > Members.member_id
 Ref: AdminStaff.admin_id < Billings.admin_id
+
+//Connects to Equipment
+Ref: Exercises.equipment_id < Equipment.equipment_id
