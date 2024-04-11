@@ -2,6 +2,7 @@ CREATE DATABASE HealthAndFitness;
 
 CREATE TYPE week_day AS enum ('Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday');
 CREATE TYPE Booking_Status AS ENUM ('Booked', 'Cancelled', 'Modified');
+CREATE TYPE Equipment_Condition AS ENUM ('Good', 'Used', 'Broken');
 
 CREATE TABLE Exercises (
   exercise_id SERIAL PRIMARY KEY,
@@ -105,4 +106,10 @@ CREATE TABLE FitnessGoals (
   member_id int REFERENCES Members(member_id),
   weight int NOT NULL,
   time_deadline date NOT NULL
+);
+
+CREATE TABLE Equipment (
+  equipment_id INT UNIQUE PRIMARY KEY,
+  equpment_name varchar(255) NOT NULL,
+  equipment_condition Equipment_Condition DEFAULT 'Good'
 );
