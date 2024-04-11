@@ -165,6 +165,7 @@ def member_login():
     mid = login_id[0]
     return True
 
+
 # Trainer Functions:
 #     1. Schedule Management (Trainer can set the time for which they are available.)
 def setSchedule():
@@ -176,13 +177,13 @@ def setSchedule():
             start_time (str): The start time of avalibility (XX:XX:XX)
             end_time (str): The end time of avalibility (XX:XX:XX)
         Return:
-            True if the update is a success, False otherwise
+            The schedule of that trainer and their information
     """
     try: 
         tid = int(input("Enter your trainer id: "))
     except ValueError:
         print('Invalid trainer id: Not an integer')
-        return False    
+        return 
     week_day = input("Enter the weekday of avalibility: ")
     start_time = input("Enter the start time (hh:mm): ")
     end_time = input("Enter the end time (hh:mm): ")
@@ -191,48 +192,63 @@ def setSchedule():
                 "Thursday", "Friday", "Saturday"]
     start_split = start_time.split(":")
     end_split = end_time.split(":")
+    
+    #Validating inputs
     if week_day not in day_list:
         print('Invalid week day: "{}" not a valid entry'.format(week_day))
-        return False
-    
+        return
     try:
         if (len(start_split) != 2 and len(start_split) != 3) or (len(end_split) != 2 and len(end_split) != 3):
             print('Invalid time format: must be "hh:mm:ss" or "hh:mm"')
-            return False
-        elif int(start_split[0]) < 0 or int(start_split[0] > 24) or int(end_split[0]) < 0 or int(end_split[0] > 24):
+            return
+        elif int(start_split[0]) < 0 or int(start_split[0]) > 24 or int(end_split[0]) < 0 or int(end_split[0]) > 24:
             print('Invalid hour: hours must be between 0-24 (inclusive)')
-            return False
-        elif int(start_split[1]) < 0 or int(start_split[1] > 60) or int(end_split[1]) < 0 or int(end_split[1] > 60):
+            return
+        elif int(start_split[1]) < 0 or int(start_split[1]) > 60 or int(end_split[1]) < 0 or int(end_split[1]) > 60:
             print('Invalid minutes: minutes must be between 0-60 (inclusive)')
-            return False
+            return
     
-        if len(start_split) == 3 and (int(start_split[2]) < 0 or int(start_split[2] > 60)):
+        if len(start_split) == 3 and (int(start_split[2]) < 0 or int(start_split[2]) > 60):
             print('Invalid seconds: hours must be between 0-60 (inclusive)')
-            return False   
+            return  
         if len(end_split) == 3 and (int(end_split[2]) < 0 or int(end_split[2]) > 60):
             print('Invalid seconds: hours must be between 0-60 (inclusive)')
-            return False    
+            return   
     
-        if (int(start_split[0]) == 24 and (int(start_split[1] > 0) or int(start_split[2] > 0))) or (int(end_split[0]) == 24 and (int(end_split[1] > 0) or int(end_split[2] > 0))):
+        if (int(start_split[0]) == 24 and (int(start_split[1]) > 0 or int(start_split[2]) > 0)) or (int(end_split[0]) == 24 and (int(end_split[1]) > 0 or int(end_split[2]) > 0)):
             print('Invalid time: Time cannot be past 24 hours')
-            return False    
+            return   
     except ValueError:
         print('Invalid time input: Not an integer in (hh:mm)')
-        return False      
-    
+        return    
     if start_time > end_time:
         print('Invalid inputs: start time must be before end time')
-        return False
+        return
     
-    #Find the index to insert the date at
-    for i in range(7):
-        if day_list[i] == week_day:
-            break
-        
-    cursor.execute("UPDATE Trainers\nSET day_schedule[{}] = '{}', start_time[{}] = '{}', end_time[{}] = '{}' \nWHERE trainer_id = {};".format(i,week_day,i,start_time,i,end_time,tid))
-    print("UPDATE SUCCESS! Trainer schedule has been updated.")
+    #Collect current schedule info
+    cursor.execute("SELECT day_schedule FROM Trainers WHERE trainer_id = {};".format(tid))
+    new_table = cursor.fetchall()
+    #Weird formatting with the way the arrays are interpreted
+    trainer_current_day_lst = new_table[0][0][1:len(new_table[0][0])-1].split(",")
+    #If day of week needs to be added
+    if (week_day not in trainer_current_day_lst) and (len(trainer_current_day_lst) < 7):
+        cursor.execute("UPDATE Trainers SET day_schedule[{}] = '{}', start_time[{}] = '{}', end_time[{}] = '{}' WHERE trainer_id = {};".format(str(len(trainer_current_day_lst)+1),week_day,str(len(trainer_current_day_lst)+1),start_time,str(len(trainer_current_day_lst)+1),end_time,str(tid)))
+        connection.commit()
+        print("UPDATE SUCCESS! Trainer schedule for {} has been added.".format(week_day))     
+    else:
+        #Otherwise, it needs to be updated
+        i = 1
+        for day_of_week in trainer_current_day_lst:
+            if week_day == day_of_week and i <= 7:
+                cursor.execute("UPDATE Trainers SET day_schedule[{}] = '{}', start_time[{}] = '{}', end_time[{}] = '{}' WHERE trainer_id = {};".format(str(i),week_day,str(i),start_time,str(i),end_time,str(tid)))
+                connection.commit()
+                print("UPDATE SUCCESS! Trainer schedule for {} has been updated.".format(week_day))
+                break
+            i += 1
     
-    return True
+    #Return updated/modified schedule
+    cursor.execute("SELECT * FROM Trainers WHERE trainer_id = {}".format(str(tid)))
+    return cursor.fetchall()
 
 #     2. Member Profile Viewing (Search by Member’s name)
 def viewProfile():
@@ -244,11 +260,12 @@ def viewProfile():
             A list containing the The profile information tuples
     """
     first_name = input("Search member profile by first name: ")
-    cursor.execute("SELECT * \nFROM Profile \nWHERE first_name = '{}';".format(first_name))
+    cursor.execute("SELECT * FROM Profile WHERE first_name = '{}';".format(first_name))
     new_table = cursor.fetchall()
+    print("SEARCH SUCCESS! Displaying information about member {}:".format(first_name))
     for row in new_table:
         print(row)
-    return new_table    
+    return new_table     
     
 
 # Administrative Staff Functions:
@@ -561,7 +578,7 @@ def setup(db_user: str, db_pass:str):
                            password = db_pass,
                            port = db_port)
     #Return the item to control database actions
-    return conn.cursor()
+    return conn
 
 if __name__ == '__main__':
     #print program info and commands
@@ -575,8 +592,9 @@ if __name__ == '__main__':
     '''
     name = input("\tEnter the DB server username: ")
     password = input("\tEnter the DB server password: ")
-    cursor = setup(name, password)
-    print("Connection success! Call the functions above to manipulate the database...\n")
+    connection = setup(name, password)
+    cursor = connection.cursor()
+    print("Connection success!")
     '''
 
     UI()
