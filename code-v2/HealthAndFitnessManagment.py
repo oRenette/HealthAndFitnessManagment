@@ -332,6 +332,7 @@ def bookingManagement():
         if result and result[0] == admin_id:
             # Delete the booking
             cursor.execute("DELETE FROM MemberClassBookings WHERE booking_id = {}".format(booking_id))
+            connection.commit()
             print("Booking deleted successfully.")
         else:
             print("Admin is not authorized to delete this booking.")
@@ -348,6 +349,7 @@ def bookingManagement():
             cursor.execute(
                 "INSERT INTO MemberClassBookings (member_id, class_id, status) VALUES (%s, %s, %s)",
                 (member_id, class_id, status))
+            connection.commit()
             print("Room booking added successfully!")
         else:
             print("Admin does not exist.")
@@ -380,6 +382,7 @@ def equipmentMaintenance():
     elif choice == 2:
         equipment_id = input("Please enter the id of the equipment you have replaced:")
         cursor.execute("UPDATE Equipment SET equipment_condition = 'Good' WHERE equipment_id = {}".format(equipment_id))
+        connection.commit()
         print("The selected equipment has been repaired")
         connection.commit()
         return True
@@ -388,12 +391,14 @@ def equipmentMaintenance():
         equipment_condition = input("Please enter the condition of the equipment added:")
         cursor.execute("INSERT INTO Equipment (equipment_name, equipment_condition) "
                        "VALUES (%s, %s)", (equipment_name, equipment_condition))
+        connection.commit()
         print("The equipment has been added to the database")
         connection.commit()
         return True
     elif choice == 4:
         equipment_id = input("Please enter the id of the equipment you want to delete:")
         cursor.execute("DELETE FROM Equipment WHERE equipment_id = {}".format(equipment_id))
+        connection.commit()
         print("The equipment has been deleted from the database")
         connection.commit()
         return True
@@ -428,8 +433,8 @@ def classScheduleUpdating():
         week_day = input("Enter the new weekday of the class: ")
         start_time = input("Enter the new start time (hh:mm): ")
         end_time = input("Enter the new end time (hh:mm): ")
-        cursor.execute("UPDATE Classes SET day_schedule = {}, start_time = {}, end_time = {} "
-                       "WHERE class_id = {}".format(week_day, start_time, end_time, class_id))
+        cursor.execute("UPDATE Classes SET day_schedule = cast('{}' as week_day), start_time = cast('{}' as time), end_time = cast('{}' as time) WHERE class_id = {}".format(week_day, start_time, end_time, class_id))
+        connection.commit()
         return True
     else:
         print("Not an option")
@@ -477,6 +482,7 @@ def billingAndPayment():
             print("Amount must be a double value")
             return False
         cursor.execute("INSERT INTO billings (member_id, admin_id, amount) VALUES (%s, %s, %s)", member_id, admin_id, amount)
+        connection.commit()
         return True
     elif choice == 3:
         try:
@@ -494,6 +500,7 @@ def billingAndPayment():
         prev_amount = cursor.execute("SELECT amount FROM billings WHERE member_id = %s", member_id)
         amount = prev_amount - amount_payed
         cursor.execute("UPDATE billings SET amount = %s WHERE member_id = %s", amount, member_id)
+        connection.commit()
         return True
     else:
         print("Not an option")
