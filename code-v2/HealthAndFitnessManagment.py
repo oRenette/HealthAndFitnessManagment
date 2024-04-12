@@ -200,7 +200,7 @@ def member_login():
 
 # Trainer Functions:
 #     1. Schedule Management (Trainer can set the time for which they are available.)
-def setSchedule():
+def setSchedule(tid):
     """
     Updates the desired Trainer based off id and prints out a confirmation message
         Inputs (Not parameters):
@@ -211,11 +211,6 @@ def setSchedule():
         Return:
             The schedule of that trainer and their information
     """
-    try: 
-        tid = int(input("Enter your trainer id: "))
-    except ValueError:
-        print('Invalid trainer id: Not an integer')
-        return 
     week_day = input("Enter the weekday of avalibility: ")
     start_time = input("Enter the start time (hh:mm): ")
     end_time = input("Enter the end time (hh:mm): ")
@@ -299,11 +294,31 @@ def viewProfile():
         print(row)
     return new_table     
     
+    
+def trainer_login():
+    """
+    trainer login based off of their email
+    Assumption: Trainer is registered
+    
+    Returns True if login successful and False otherwise
+    """
+    
+    email = input("Please enter your email to login.\n")
+    
+    cursor.execute("select trainer_id from Trainers where email='{}'".format(email))
+    train_id = cursor.fetchone()
+    if train_id:
+        train_id = train_id [0]
+    
+        return train_id
+    else:
+        print("Email doesn't exist")
+        return -1        
 
 # Administrative Staff Functions:
 
 #     1. Room Booking Management
-def bookingManagement():
+def bookingManagement(admin_id):
     """
         Allows admin users delete or add bookings
             Inputs:
@@ -312,13 +327,6 @@ def bookingManagement():
             member_id of member booking room
             class_id of class taking place in booked room
         """
-    admin_id = int(input("Please enter your admin id:"))
-    try:
-        choice = int(input("1: Cancel a booking\n2: Add a booking\n"))
-    except ValueError:
-        print("Not a valid option. Must type value associated with option.")
-        return False
-
     if choice == 1:
         try:
             booking_id = int(input("What is the booking_id you want to delete?\n"))
@@ -332,7 +340,6 @@ def bookingManagement():
         if result and result[0] == admin_id:
             # Delete the booking
             cursor.execute("DELETE FROM MemberClassBookings WHERE booking_id = {}".format(booking_id))
-            connection.commit()
             print("Booking deleted successfully.")
         else:
             print("Admin is not authorized to delete this booking.")
@@ -349,7 +356,6 @@ def bookingManagement():
             cursor.execute(
                 "INSERT INTO MemberClassBookings (member_id, class_id, status) VALUES (%s, %s, %s)",
                 (member_id, class_id, status))
-            connection.commit()
             print("Room booking added successfully!")
         else:
             print("Admin does not exist.")
@@ -382,7 +388,6 @@ def equipmentMaintenance():
     elif choice == 2:
         equipment_id = input("Please enter the id of the equipment you have replaced:")
         cursor.execute("UPDATE Equipment SET equipment_condition = 'Good' WHERE equipment_id = {}".format(equipment_id))
-        connection.commit()
         print("The selected equipment has been repaired")
         connection.commit()
         return True
@@ -391,14 +396,12 @@ def equipmentMaintenance():
         equipment_condition = input("Please enter the condition of the equipment added:")
         cursor.execute("INSERT INTO Equipment (equipment_name, equipment_condition) "
                        "VALUES (%s, %s)", (equipment_name, equipment_condition))
-        connection.commit()
         print("The equipment has been added to the database")
         connection.commit()
         return True
     elif choice == 4:
         equipment_id = input("Please enter the id of the equipment you want to delete:")
         cursor.execute("DELETE FROM Equipment WHERE equipment_id = {}".format(equipment_id))
-        connection.commit()
         print("The equipment has been deleted from the database")
         connection.commit()
         return True
@@ -433,15 +436,15 @@ def classScheduleUpdating():
         week_day = input("Enter the new weekday of the class: ")
         start_time = input("Enter the new start time (hh:mm): ")
         end_time = input("Enter the new end time (hh:mm): ")
-        cursor.execute("UPDATE Classes SET day_schedule = cast('{}' as week_day), start_time = cast('{}' as time), end_time = cast('{}' as time) WHERE class_id = {}".format(week_day, start_time, end_time, class_id))
-        connection.commit()
+        cursor.execute("UPDATE Classes SET day_schedule = {}, start_time = {}, end_time = {} "
+                       "WHERE class_id = {}".format(week_day, start_time, end_time, class_id))
         return True
     else:
         print("Not an option")
         return False
 
 #     4. Billing and Payment Processing
-def billingAndPayment():
+def billingAndPayment(admin_id):
     """
     Allows admin users to email bills, add bills, and process payments of members
         Inputs:
@@ -461,16 +464,15 @@ def billingAndPayment():
         except ValueError:
             print("Member id must be an integer value")
             return False
-        amount = cursor.execute("SELECT amount FROM Billings WHERE member_id = %s", str(member_id))
+        amount = cursor.execute("SELECT amount FROM billings WHERE member_id = {}".format(member_id))
         cursor.execute("SELECT profile.email, billings.amount FROM profile "
                        "JOIN members ON profile.profile_id = members.profile_id "
                        "JOIN billings ON members.member_id = billings.member_id "
-                       "WHERE members.member_id = %s", str(member_id))
-        print("An email has been sent to the member with %s id for an billing amount of $%s", str(member_id), str(amount))
+                       "WHERE members.member_id = {}".format(member_id))
+        print("An email has been sent to the member with {} id for an billing amount of ${}".format(member_id, amount))
         return True
     elif choice == 2:
         try:
-            admin_id = int(input("Enter your admin id:"))
             member_id = int(input("Enter the id of the member:"))
         except ValueError:
             print("Member/Admin id must be an integer value")
@@ -511,6 +513,27 @@ def billingAndPayment():
     else:
         print("Not an option")
         return False
+    
+
+def admin_login():
+    """
+    Admin login based off of their email
+    Assumption: Admin is registered
+    
+    Returns True if login successful and False otherwise
+    """
+    
+    email = input("Please enter your email to login.\n")
+    
+    cursor.execute("select admin_id from AdminStaff where email='{}'".format(email))
+    admin_id = cursor.fetchone()
+    if admin_id:
+        admin_id = admin_id [0]
+    
+        return admin_id
+    else:
+        print("Email doesn't exist")
+        return -1     
 
 #Non User-Functionality Methods
 def UI():
@@ -520,7 +543,11 @@ def UI():
     
     func = -1
     member_logged_in = False
+    trainer_logged_in = False
+    admin_logged_in = False
     mid = -1
+    tid = -1
+    aid = -1
     
     while func != 0:
         if func not in [1,2,3]:
@@ -576,46 +603,80 @@ def UI():
                     print("\nTrainer Functions\n")
                     print("Please select a functionality")
                     
-                    try:
-                        user_func = int(input(" 1. Schedule Management\n 2. View Member Profiles\n 3. Return\n"))
-                    except ValueError:
-                        print("Invalid Input. Try again.")       
+                    if trainer_logged_in == False or tid <= 0:
+                        try:
+                            user_func = int(input(" 1. Trainer Login\n 2. Return\n"))
+                        except ValueError:
+                            print("Invalid Input. Try again.")
+                            
+                        match user_func:
+                            case 0:
+                                func = 0
+                            case 1:
+                                trainer_logged_in = True
+                                tid = trainer_login()
+                            case 2:
+                                func = 4
+                            case _:
+                                print("Invalid")
+                    else:                        
+                        try:
+                            user_func = int(input(" 1. Schedule Management\n 2. View Member Profiles\n 3. Trainer Logout\n"))
+                        except ValueError:
+                            print("Invalid Input. Try again.")       
                         
-                    match user_func:
-                        case 0:
-                            func = 0                        
-                        case 1:
-                            setSchedule()
-                        case 2:
-                            viewProfile()
-                        case 3:
-                            func = 4
-                        case _:
-                            print("Invalid")
+                        match user_func:
+                            case 0:
+                                func = 0                        
+                            case 1:
+                                setSchedule(tid)
+                            case 2:
+                                viewProfile()
+                            case 3:
+                                trainer_logged_in = False
+                            case _:
+                                print("Invalid")
                 case 3:
                     print("\nAdmin Functions\n")
                     print("please select a functionality")
                     
-                    try:
-                        user_func = int(input(" 1. Room Booking Management\n 2. Equipment Monitoring\n 3. Update Class Scheduling\n 4. Billing and Payment\n 5. Return\n"))
-                    except ValueError:
-                        print("Invalid Input. Try again.")   
-                    
-                    match user_func:
-                        case 0:
-                            func = 0                        
-                        case 1:
-                            bookingManagement()
-                        case 2:
-                            equipmentMaintenance()
-                        case 3:
-                            classScheduleUpdating()
-                        case 4:
-                            billingAndPayment()
-                        case 5:
-                            func = 4
-                        case _:
-                            print("Invalid")
+                    if admin_logged_in == False or aid <= 0:
+                        try:
+                            user_func = int(input(" 1. Admin Login\n 2. Return\n"))
+                        except ValueError:
+                            print("Invalid Input. Try again.")
+                            
+                        match user_func:
+                            case 0:
+                                func = 0
+                            case 1:
+                                admin_logged_in = True
+                                aid = admin_login()
+                            case 2:
+                                func = 4
+                            case _:
+                                print("Invalid")
+                    else:                    
+                        try:
+                            user_func = int(input(" 1. Room Booking Management\n 2. Equipment Monitoring\n 3. Update Class Scheduling\n 4. Billing and Payment\n 5. Admin Logout\n"))
+                        except ValueError:
+                            print("Invalid Input. Try again.")   
+                        
+                        match user_func:
+                            case 0:
+                                func = 0                        
+                            case 1:
+                                bookingManagement(aid)
+                            case 2:
+                                equipmentMaintenance()
+                            case 3:
+                                classScheduleUpdating()
+                            case 4:
+                                billingAndPayment(aid)
+                            case 5:
+                                admin_logged_in = False
+                            case _:
+                                print("Invalid")
         
     print("QUITING....")    
     
