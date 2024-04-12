@@ -481,7 +481,7 @@ def billingAndPayment():
         except ValueError:
             print("Amount must be a double value")
             return False
-        cursor.execute("INSERT INTO billings (member_id, admin_id, amount) VALUES (%s, %s, %s)", member_id, admin_id, amount)
+        cursor.execute("INSERT INTO billings (member_id, admin_id, amount) VALUES (%s, %s, %s)", (member_id, admin_id, amount))
         connection.commit()
         return True
     elif choice == 3:
@@ -496,10 +496,16 @@ def billingAndPayment():
         except ValueError:
             print("Amount must be a double value")
             return False
-
-        prev_amount = cursor.execute("SELECT amount FROM billings WHERE member_id = %s", member_id)
+        
+        cursor.execute("SELECT amount FROM billings WHERE member_id = {}".format(member_id))
+        prev_amount = cursor.fetchone()[0]
         amount = prev_amount - amount_payed
-        cursor.execute("UPDATE billings SET amount = %s WHERE member_id = %s", amount, member_id)
+        if amount <= 0:
+            cursor.execute("delete from billings WHERE member_id = {}".format(member_id))
+            print("Returning ${} to Member with id {}".format(abs(amount), member_id))
+        else:
+            cursor.execute("UPDATE billings SET amount = {} WHERE member_id = {}".format(amount, member_id))
+            
         connection.commit()
         return True
     else:
