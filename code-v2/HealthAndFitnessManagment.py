@@ -2,6 +2,7 @@ import socket
 import sys
 sys.path.append('./externalLib')
 import psycopg2
+from datetime import datetime
 
 #Author Group 113
 #Version April 10, 2024
@@ -197,7 +198,6 @@ def member_login():
         print("Email doesn't exist")
         return -1        
 
-
 # Trainer Functions:
 #     1. Schedule Management (Trainer can set the time for which they are available.)
 def setSchedule():
@@ -312,32 +312,32 @@ def bookingManagement():
             member_id of member booking room
             class_id of class taking place in booked room
         """
-    admin_id = input("Please enter your admin id:")
+    admin_id = int(input("Please enter your admin id:"))
     try:
-        choice = int(input("1: cancel a booking\n2: add a booking"))
+        choice = int(input("1: Cancel a booking\n2: Add a booking\n"))
     except ValueError:
         print("Not a valid option. Must type value associated with option.")
         return False
 
     if choice == 1:
         try:
-            booking_id = int(input("What is the booking_id you want to delete?"))
+            booking_id = int(input("What is the booking_id you want to delete?\n"))
         except ValueError:
             print("Booking id must be an integer value")
             return False
 
         # Check if admin is authorized to delete the booking
-        cursor.execute("SELECT admin_id FROM AdminClassBookings WHERE booking_id = %s", (booking_id))
+        cursor.execute("SELECT admin_id FROM AdminClassBookings WHERE booking_id = {}".format(booking_id))
         result = cursor.fetchone()
         if result and result[0] == admin_id:
             # Delete the booking
-            cursor.execute("DELETE FROM MemberClassBookings WHERE booking_id = %s", (booking_id))
+            cursor.execute("DELETE FROM MemberClassBookings WHERE booking_id = {}".format(booking_id))
             print("Booking deleted successfully.")
         else:
             print("Admin is not authorized to delete this booking.")
         return True
     elif choice == 2:
-        cursor.execute("SELECT * FROM AdminStaff WHERE admin_id = %s", (admin_id))
+        cursor.execute("SELECT * FROM AdminStaff WHERE admin_id = {}".format(admin_id))
         admin_exists = cursor.fetchone()
         if admin_exists:
             print("To add a room booking please provide the following information:")
@@ -367,7 +367,7 @@ def equipmentMaintenance():
         eqipment_condition of equipment added
     """
     try:
-        choice = int(input("1: View all equipment condition\n2: Replaced equipment\n3: Add new equipment\n4: Remove equipment"))
+        choice = int(input("1: View all equipment condition\n2: Replaced equipment\n3: Add new equipment\n4: Remove equipment\n"))
     except ValueError:
         print("Not a valid option. Must type value associated with option.")
         return False
@@ -379,8 +379,9 @@ def equipmentMaintenance():
         return True
     elif choice == 2:
         equipment_id = input("Please enter the id of the equipment you have replaced:")
-        cursor.execute("UPDATE Equipment SET equipment_condition = 'Good' WHERE equipment_id = %s", (equipment_id,))
+        cursor.execute("UPDATE Equipment SET equipment_condition = 'Good' WHERE equipment_id = {}".format(equipment_id))
         print("The selected equipment has been repaired")
+        connection.commit()
         return True
     elif choice == 3:
         equipment_name = input("Please enter the name of the equipment added:")
@@ -388,11 +389,13 @@ def equipmentMaintenance():
         cursor.execute("INSERT INTO Equipment (equipment_name, equipment_condition) "
                        "VALUES (%s, %s)", (equipment_name, equipment_condition))
         print("The equipment has been added to the database")
+        connection.commit()
         return True
     elif choice == 4:
         equipment_id = input("Please enter the id of the equipment you want to delete:")
-        cursor.execute("DELETE FROM Equipment WHERE equipment_id = %s", (equipment_id))
+        cursor.execute("DELETE FROM Equipment WHERE equipment_id = {}".format(equipment_id))
         print("The equipment has been deleted from the database")
+        connection.commit()
         return True
     else:
         print("Not an option")
@@ -409,21 +412,24 @@ def classScheduleUpdating():
         end_time of changed class
     """
     try:
-        choice = int(input("1: View all class times\n2: Change a class time"))
+        choice = int(input("1: View all class times\n2: Change a class time\n"))
     except ValueError:
         print("Not a valid option. Must type value associated with option.")
         return False
 
     if choice == 1:
         cursor.execute("SELECT class_id, class_name, day_schedule, start_time, end_time FROM Classes")
+        classes = cursor.fetchall()
+        for c in classes:
+            print(f"{c[0]}. {c[1]} -- Day: {c[2]} Time: {c[3]} -> {c[4]}")        
         return True
     elif choice == 2:
         class_id = input("Please enter the class id of the class you want to reschedule:")
         week_day = input("Enter the new weekday of the class: ")
         start_time = input("Enter the new start time (hh:mm): ")
         end_time = input("Enter the new end time (hh:mm): ")
-        cursor.execute("UPDATE Classes SET day_schedule = %s, start_time = %s, end_time = %s "
-                       "WHERE class_id = %s", week_day, start_time, end_time, class_id)
+        cursor.execute("UPDATE Classes SET day_schedule = {}, start_time = {}, end_time = {} "
+                       "WHERE class_id = {}".format(week_day, start_time, end_time, class_id))
         return True
     else:
         print("Not an option")
@@ -439,7 +445,7 @@ def billingAndPayment():
         amount_payed of bill by a member
     """
     try:
-        choice = int(input("1: Email bills to a member\n2: Add to member's bill\n3: Process members payment"))
+        choice = int(input("1: Email bills to a member\n2: Add to member's bill\n3: Process members payment\n"))
     except ValueError:
         print("Not a valid option. Must type value associated with option.")
         return False
@@ -578,7 +584,7 @@ def UI():
                     print("please select a functionality")
                     
                     try:
-                        user_func = int(input(" 1. Room Booking Management\n 2. Equipment Monitoring\n 3. Update Class Scheduling\n 4. Billing and Payment\n 5. Return"))
+                        user_func = int(input(" 1. Room Booking Management\n 2. Equipment Monitoring\n 3. Update Class Scheduling\n 4. Billing and Payment\n 5. Return\n"))
                     except ValueError:
                         print("Invalid Input. Try again.")   
                     
@@ -630,12 +636,11 @@ if __name__ == '__main__':
     print("Enter the DB server's name and passowrd to connect:")
 
     #Prompt for name and pasword of the postgres server that should be connected
-    '''
+    
     name = input("\tEnter the DB server username: ")
     password = input("\tEnter the DB server password: ")
     connection = setup(name, password)
     cursor = connection.cursor()
     print("Connection success!")
-    '''
-
+    
     UI()
