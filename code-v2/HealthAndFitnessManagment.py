@@ -461,12 +461,12 @@ def billingAndPayment():
         except ValueError:
             print("Member id must be an integer value")
             return False
-        amount = cursor.execute("SELECT amount FROM billings WHERE member_id = %s", member_id)
+        amount = cursor.execute("SELECT amount FROM Billings WHERE member_id = %s", str(member_id))
         cursor.execute("SELECT profile.email, billings.amount FROM profile "
                        "JOIN members ON profile.profile_id = members.profile_id "
                        "JOIN billings ON members.member_id = billings.member_id "
-                       "WHERE members.member_id = %s", member_id)
-        print("An email has been sent to the member with %s id for an billing amount of $%s", member_id, amount)
+                       "WHERE members.member_id = %s", str(member_id))
+        print("An email has been sent to the member with %s id for an billing amount of $%s", str(member_id), str(amount))
         return True
     elif choice == 2:
         try:
