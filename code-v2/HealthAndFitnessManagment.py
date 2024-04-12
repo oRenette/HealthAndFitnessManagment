@@ -13,6 +13,8 @@ import psycopg2
 #     2. Profile Management (Updating personal information, fitness goals, health metrics)
 #     3. Dashboard Display (Displaying exercise routines, fitness achievements, health statistics)
 #     4. Schedule Management (Scheduling personal training sessions or group fitness classes. The system
+
+
 def member_registration():
     """
     The registration for the user
@@ -34,21 +36,25 @@ def member_registration():
     height = input("\tHeight:")
     
     if gender.lower() == "male":
-        gender = true
+        gender = True
     else:
-        gender = false
+        gender = False
     
     cursor.execute("insert into Profile (first_name, last_name, email) values (%s, %s, %s)", (first_name, last_name, email))
-    cursor.execute("select profile_id from Profile where email = %s", (email))
-    prof_id = cursor.fetchall()
+    connection.commit()
+    cursor.execute("select profile_id from Profile")
+    prof_id = cursor.fetchall()[-1]
     
     cursor.execute("insert into HealthStatistics (weight, age, male, height) values (%s,%s,%s,%s)", (weight, age, gender, height))
-    cursor.execute("select health_id from HealthStatistics where weight = %s, age = %s, male = %s, height = %s", (weight, age, gender, height))
-    health_id = cursor.fetchall()    
+    connection.commit()
+    cursor.execute("select health_id from HealthStatistics")
+    health_id = cursor.fetchall()[-1]    
     
     cursor.execute("insert into Members (profile_id, health_id) values (%s, %s)", (prof_id, health_id))
+    connection.commit()
+
         
-def profile_management():
+def profile_management(mid):
     """
     Updates the profile of the member with the new stats they give
     
@@ -60,7 +66,7 @@ def profile_management():
     """
     print("\nWhat would you like to edit? (Please input the number)")
     try:
-        profile = int(input("1.Fitness Goals\n2.HealthStatistics"))
+        profile = int(input("1.Fitness Goals\n2.HealthStatistics\n"))
     except ValueError:
         print("Not a valid option. Must be a number value")
         return False
@@ -68,42 +74,58 @@ def profile_management():
     if profile == 1:
         print("Please enter your new fitness goals.")
         weight = input("Target weight:")
-        target = input("Target Deadline in form Month/Day/Year:")
-        cursor.execute("update FitnessGoals set weight = %s, schedule = %s where (member_id = %s)", (weight, target, mid))
-    else:
+        target = input("Target Deadline in form Year-Month-Day:")
+        target = datetime.strptime(target, "%Y-%m-%d").date()        
+        cursor.execute("insert into FitnessGoals (member_id, weight, time_deadline) values (%s, %s, %s)", (mid, weight, target))
+        connection.commit()
+    elif profile == 2:
         print("\nInput new health statistics.")
         weight = input("\tWeight:")
         age = input("\tAge:")
         gender = input("\tGender (Male/Female/Other):")
         height = input("\tHeight:")
-        cursor.execute("update HealthStatistics set (weight = %s, age = %s, male = %s, height = %s) where (member_id = %s)", (weight, age, gender, height, mid))
+        
+        if gender.lower() == "male":
+            gender = True
+        else:
+            gender = False
+        
+        cursor.execute("select profile_id, health_id from Members where member_id={}".format(mid))
+        rows = cursor.fetchall()        
+        for row in rows:
+            cursor.execute("update HealthStatistics set weight={}, age={}, male={}, height={} where health_id={}".format(weight, age, gender, height, row[1]))
+        connection.commit()
+    else:
+        return False
     return True
             
-def dahsboard():
+def dashboard(mid):
     """
     Displays the profile, health and classes of the member that logged in
     """
-    cursor.execute("select profile_id, health_id from Members where member_id = %s", (mid))
+    cursor.execute("select profile_id, health_id from Members where member_id={}".format(mid))
     rows = cursor.fetchall()
     for row in rows:
-        cursor.execute("select weight, time_deadline from Profile where profile_id = %s", (row[0]))
+        cursor.execute("select first_name, last_name, email from Profile where profile_id={}".format(row[0]))
         prof = cursor.fetchall()
         for p in prof:
-            print(f"Weight: {p[0]}/tDeadline: {p[1]}\n")
-        cursor.execute("select (weight, age, male, height) from HealthStatistics where health_id = %s", (row[1]))
-        health = cursor.fetchall()
+            print(f"First Name: {p[0]},  Last Name: {p[1]},  Email: {p[2]}\n")
+        cursor.execute("select (weight, age, male, height) from HealthStatistics where health_id={}".format(row[1]))
+        health = cursor.fetchall()[0]
         for h in health:
-            print(f"Weight: {h[0]}/tAge: {h[1]}/tMale?: {h[2]}/tHeight: {h[3]}/n")
+            h = h[1:-1]
+            h = h.split(',')
+            print(f"Weight: {h[0]},  Age: {h[1]},  Male?: {h[2]},  Height: {h[3]}\n")
             
-    cursor.execute("select class_id from MemberClassBookings where member_id = %s", (mid))
+    cursor.execute("select class_id from MemberClassBookings where member_id={}".format(mid))
     classes = cursor.fetchall()
-    
-    print("Class Schedule")
+    print("Class Schedule:")
     for c in classes:
-        clas = cursor.execute("select class_id, class_name, day_schedule, start_time, end_time from Classes where class_id = %s", c)
+        cursor.execute("select class_id, class_name, day_schedule, start_time, end_time from Classes where class_id={}".format(c[0]))
+        clas = cursor.fetchone()
         print(f"{clas[0]}. {clas[1]} -- Day: {clas[2]} Time: {clas[3]} -> {clas[4]}")
 
-def schedule_management():
+def schedule_management(mid):
     """
     Updates the class schedule of the member based of off their ID
     Inputs (No Parameters):
@@ -112,7 +134,7 @@ def schedule_management():
         True if the update is successful, False otherwise
     """
     try:
-        choice = int(input("1.Add Classes to schedule\n2.Remove Classes from schedule"))
+        choice = int(input("1.Add Classes to schedule\n2.Remove Classes from schedule\n"))
     except ValueError:
         print("Not a valid option. Must type value associated with option.")
         return False
@@ -123,22 +145,29 @@ def schedule_management():
         print("Choose a booking to ADD from the following classes: ")
         for c in classes:
             print(f"\n{c[0]}. {c[1]}")
-        clas = input("Please select the class number.")
+        clas = input("Please select the class number.\n")
         
-        cursor.exectue("insert into MemberClassBookings values (%s, %s)", (mid, clas))
+        cursor.execute("insert into MemberClassBookings (member_id, class_id) values (%s, %s)", (mid, clas))
         print("Class has been added!")
-        return true
+        connection.commit()
+        return True
     elif choice == 2:
-        cursor.execute("select class_id, class_name, day_schedule, start_time, end_time from Classes where member_id = %s", (mid)) 
+        cursor.execute("select class_id, booking_time, status from MemberClassBookings where member_id={}".format(mid)) 
         classes = cursor.fetchall()
-        print("Choose a booking to REMOVE from the following classes: ")
-        for c in classes:
-            print(f"\n{c[0]}. {c[1]}")
-        clas = input("Please select the class number.") 
         
-        cursor.execute("update MemberClassBookings set status = 'cancelled' where (member_id = %s and class_id = %s)", (mid, clas))
-        print("Class has been cancelled!")
-        return true
+        if len(classes) != 0:
+            print("Choose a booking to REMOVE from the following classes: \n")
+            for c in classes:
+                print(f"\n{c[0]}. {c[1]}")
+                clas = input("Please select the class number.\n") 
+        
+                cursor.execute("delete from MemberClassBookings where member_id={} and class_id={}".format(mid, clas))
+                print("Class has been cancelled!")
+                connection.commit()
+                return True
+        else:
+            print("No Classes to Cancel")
+            return True
     else:
         print("Not an option")
         return False
@@ -152,18 +181,21 @@ def member_login():
     Returns True if login successful and False otherwise
     """
     
-    email = input("Please enter your email to login.")
+    email = input("Please enter your email to login.\n")
     
-    cursor.execute("select profile_id from Profile where email = %s", (email))
-    prof_id = cursor.fetchall()
-    if prof_id is empty:
+    cursor.execute("select profile_id from Profile where email='{}'".format(email))
+    prof_id = cursor.fetchone()
+    if prof_id:
+        prof_id = prof_id [0]
+    
+        cursor.execute("select member_id from Members where profile_id={}".format(prof_id))
+        login_id = cursor.fetchone()
+        login_id = login_id[0]
+    
+        return login_id
+    else:
         print("Email doesn't exist")
-        return False
-    
-    cursor.execute("select from Members where profile_id = %s", (prof_id[0]))
-    login_id = cursor.fetchall()
-    mid = login_id[0]
-    return True
+        return -1        
 
 
 # Trainer Functions:
@@ -469,6 +501,7 @@ def UI():
     
     func = -1
     member_logged_in = False
+    mid = -1
     
     while func != 0:
         if func not in [1,2,3]:
@@ -483,34 +516,39 @@ def UI():
                 case 1:
                     print("\nMember Fucntions")
                     print("Please select a functionality.")                    
-                    if member_logged_in == False:
+                    if member_logged_in == False or mid <= 0:
                         try:
-                            user_func = int(input(" 1. User Registration\n 2. User Login\n 3.Return\n"))
+                            user_func = int(input(" 1. User Registration\n 2. User Login\n 3. Return\n"))
                         except ValueError:
                             print("Invalid Input. Try again.")
                             
                         match user_func:
+                            case 0:
+                                func = 0
                             case 1:
                                 member_registration()
                             case 2:
-                                member_login()
+                                member_logged_in = True
+                                mid = member_login()
                             case 3:
                                 func = 4
                             case _:
                                 print("Invalid")
                     else:
                         try:
-                            user_func = int(input(" 1. Edit Profile\n 2. Edit Schedule\n 3. View Dashboard\n 4.User Logout\n"))
+                            user_func = int(input(" 1. Edit Profile\n 2. Edit Schedule\n 3. View Dashboard\n 4. User Logout\n"))
                         except ValueError:
                             print("Invalid Input. Try again.")          
                         
                         match user_func:
+                            case 0:
+                                func = 0
                             case 1:
-                                profile_management()
+                                profile_management(mid)
                             case 2:
-                                schedule_management()
+                                schedule_management(mid)
                             case 3:
-                                dashboard()
+                                dashboard(mid)
                             case 4:
                                 member_logged_in = False
                             case _:
@@ -520,11 +558,13 @@ def UI():
                     print("Please select a functionality")
                     
                     try:
-                        user_func = int(input(" 1. Schedule Management\n 2. View Member Profiles\n 3.Return\n"))
+                        user_func = int(input(" 1. Schedule Management\n 2. View Member Profiles\n 3. Return\n"))
                     except ValueError:
                         print("Invalid Input. Try again.")       
                         
                     match user_func:
+                        case 0:
+                            func = 0                        
                         case 1:
                             setSchedule()
                         case 2:
@@ -543,6 +583,8 @@ def UI():
                         print("Invalid Input. Try again.")   
                     
                     match user_func:
+                        case 0:
+                            func = 0                        
                         case 1:
                             bookingManagement()
                         case 2:
@@ -557,7 +599,6 @@ def UI():
                             print("Invalid")
         
     print("QUITING....")    
-    
     
 
 def setup(db_user: str, db_pass:str):
