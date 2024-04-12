@@ -14,9 +14,9 @@ INSERT INTO Profile (first_name, last_name, email) VALUES
 
 -- Inserting data into Trainers table
 INSERT INTO Trainers (first_name, last_name, email, day_schedule, start_time, end_time) VALUES
-('Mike', 'Anderson', 'mike.anderson@example.com', ARRAY[cast('Monday' as week_day)], ARRAY[cast('8:00:00' as time)], ARRAY[cast('12:00:00' as time)]),
-('Sarah', 'Clark', 'sarah.clark@example.com', ARRAY[cast('Wednesday' as week_day)], ARRAY[cast('10:00:00' as time)], ARRAY[cast('14:00:00' as time)]),
-('David', 'Wilson', 'david.wilson@example.com', ARRAY[cast('Friday' as week_day)], ARRAY[cast('15:00:00' as time)], ARRAY[cast('19:00:00' as time)]);
+('Mike', 'Anderson', 'mike.anderson@example.com', '{Monday}', '{08:00:00}', '{12:00:00}'),
+('Sarah', 'Clark', 'sarah.clark@example.com', '{Wednesday}', '{10:00:00}', '{14:00:00}'),
+('David', 'Wilson', 'david.wilson@example.com', '{Friday}', '{15:00:00}', '{19:00:00}');
 
 -- Inserting data into AdminStaff table
 INSERT INTO AdminStaff (first_name, last_name, email) VALUES
@@ -30,10 +30,10 @@ INSERT INTO HealthStatistics (weight, age, male, height) VALUES
 (80, 40, true, 180);
 
 -- Inserting data into Members table
-INSERT INTO Members (profile_id, health_id) VALUES
-(1, 1),
-(2, 2),
-(3, 3);
+INSERT INTO Members (profile_id, health_id) Values 
+(1,1),
+(2,2),
+(3,3);
 
 -- Inserting data into Billings table
 INSERT INTO Billings (member_id, admin_id, amount) VALUES
@@ -82,10 +82,3 @@ INSERT INTO FitnessGoals (member_id, weight, time_deadline) VALUES
 (1, 65, '2024-06-30'),
 (2, 60, '2024-07-15'),
 (3, 75, '2024-05-20');
-
--- Inserting data into Equipment table
-INSERT INTO Equipment (equipment_id, equipment_name, equipment_condition) VALUES
-(1, 'Dumbell', 'Good'),
-(2, 'Yoga Mat', 'Good'),
-(3, 'Peloton Bike', 'Used'),
-(4, 'Treadmill', 'Broken');
