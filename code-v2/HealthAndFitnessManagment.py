@@ -327,6 +327,8 @@ def bookingManagement(admin_id):
             member_id of member booking room
             class_id of class taking place in booked room
         """
+    choice = int(input(" 1. Delete a Booking\n 2. Add a Booking.\n"))
+    
     if choice == 1:
         try:
             booking_id = int(input("What is the booking_id you want to delete?\n"))
