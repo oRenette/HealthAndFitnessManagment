@@ -1,7 +1,7 @@
 # HealthAndFitnessManagment
 Provides functions to manage a Health and Fitness Managment Database.
 ## Setup
-* Video Tutorial: _______________________
+* Video Tutorial: https://www.youtube.com/watch?v=CiJusgWjKjA
 * Launch pgadmin4
 * Locate the 'database-v2' folder
   * Open the 'CreateTable.sql' file and execute it
