@@ -1,15 +1,15 @@
-# HealthAndFitnessManagment
-Provides functions to manage a Health and Fitness Managment Database.
+# HealthAndFitnessManagement
+Provides functions to manage a Health and Fitness Management Database.
 ## Setup
 * Video Tutorial: _______________________
 * Launch pgadmin4
 * Locate the 'database-v2' folder
   * Open the 'CreateTable.sql' file and execute it
-    * If creating through pgadmin4, name the DB 'HealthAndFitness' and remove the 'CREATE DATABASE HealthAndFitness' querey from the file before executing
+    * If creating through pgadmin4, name the DB 'HealthAndFitness' and remove the 'CREATE DATABASE HealthAndFitness' query from the file before executing
   * Open the 'dml.sql' file and execute it
     * This will create and inject the 'HealthAndFitness' database to its init state
 * Locate the 'code-v2' folder
-  * Open the 'databaseManipulator.py' in your prefered IDE and run the script
+  * Open the 'databaseManipulator.py' in your preferred IDE and run the script
     * Interact with the IDE shell to use application
       * Instructions shown in the application
   * Alternatively, run the program using the command line instead of an IDE
